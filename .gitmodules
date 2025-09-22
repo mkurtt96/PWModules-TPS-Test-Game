@@ -1,0 +1,13 @@
+[submodule "Plugins/PWCoreLibs"]
+	path = Plugins/PWCoreLibs
+	url = https://github.com/mkurtt96/PWCoreLibs.git
+[submodule "Plugins/PWAbility"]
+	path = Plugins/PWAbility
+	url = https://github.com/mkurtt96/PWAbility.git
+	branch = main
+[submodule "Plugins/PWTeams"]
+	path = Plugins/PWTeams
+	url = https://github.com/mkurtt96/PWTeams.git
+[submodule "Plugins/PWGAS"]
+	path = Plugins/PWGAS
+	url = https://github.com/mkurtt96/PWGAS.git
