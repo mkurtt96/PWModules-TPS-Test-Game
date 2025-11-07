@@ -17,7 +17,7 @@ public:
 	AWorldDamageableActor();
 	
 	// IDamageable
-	virtual bool ApplyDamageFromParams_Implementation(USpellParamsBase* Params);
+	virtual bool ApplyDamageFromParams_Implementation(USpellParams* Params);
 	
 	// IPWEffectReceiverInterface
 	virtual UObject* GetEffectReceiver_Implementation() override;

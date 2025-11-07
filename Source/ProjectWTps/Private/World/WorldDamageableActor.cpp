@@ -9,7 +9,7 @@ AWorldDamageableActor::AWorldDamageableActor()
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-bool AWorldDamageableActor::ApplyDamageFromParams_Implementation(USpellParamsBase* Params)
+bool AWorldDamageableActor::ApplyDamageFromParams_Implementation(USpellParams* Params)
 {
 	return true;
 }

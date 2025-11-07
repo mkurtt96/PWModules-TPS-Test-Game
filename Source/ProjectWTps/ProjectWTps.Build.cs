@@ -18,20 +18,23 @@ public class ProjectWTps : ModuleRules
 			"StateTreeModule",
 			"GameplayStateTreeModule",
 			"UMG",
-			"Slate", "PWContracts"
+			"Slate", 
+			"PWContracts", 
+			"PWGasCore", 
+			"PWAttributes", 
+			"GameplayAbilities",
+			"GameplayTags"
 		});
 
-		PrivateDependencyModuleNames.AddRange(new string[] { });
+		PrivateDependencyModuleNames.AddRange(new string[]
+		{
+			"PWInput",
+			"PWGasCore", 
+			
+		});
 
 		PublicIncludePaths.AddRange(new string[] {
 			"ProjectWTps",
-			"ProjectWTps/Variant_Platforming",
-			"ProjectWTps/Variant_Platforming/Animation",
-			"ProjectWTps/Variant_SideScrolling",
-			"ProjectWTps/Variant_SideScrolling/AI",
-			"ProjectWTps/Variant_SideScrolling/Gameplay",
-			"ProjectWTps/Variant_SideScrolling/Interfaces",
-			"ProjectWTps/Variant_SideScrolling/UI"
 		});
 
 		// Uncomment if you are using Slate UI
