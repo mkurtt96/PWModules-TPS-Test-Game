@@ -1,6 +1,6 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
-#include "Character/ProjectWTpsCharacter.h"
+#include "ProjectWTPS/Character/ProjectWTpsCharacter.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "Engine/LocalPlayer.h"
@@ -13,15 +13,15 @@
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
 #include "ProjectWTps.h"
+#include "ProjectWTPS/Tags/ProjectWTpsTags.h"
 #include "GAS/ASC/PWAbilitySystemComponent.h"
-#include "GAS/Tags/GASCoreTags.h"
-#include "Player/TPSPlayerState.h"
+#include "ProjectWTPS/Player/TPSPlayerState.h"
 
 AProjectWTpsCharacter::AProjectWTpsCharacter()
 {
 	// Set size for collision capsule
 	GetCapsuleComponent()->InitCapsuleSize(42.f, 96.0f);
-		
+
 	// Don't rotate when the controller rotates. Let that just affect the camera.
 	bUseControllerRotationPitch = false;
 	bUseControllerRotationYaw = false;
@@ -58,20 +58,16 @@ AProjectWTpsCharacter::AProjectWTpsCharacter()
 void AProjectWTpsCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
-	GetAbilitySystemComponent()->RegisterGenericGameplayTagEvent().AddLambda([this](FGameplayTag Tag, int32 Count)
-	{
-		if (!Tag.MatchesTagExact(PWTags::ASC::State::Casting)) return;
-		if (Count > 0) GetCharacterMovement()->bOrientRotationToMovement = false;
-		else GetCharacterMovement()->bOrientRotationToMovement = true;
-	});
+
+	GetAbilitySystemComponent()->RegisterGenericGameplayTagEvent().AddUObject(this, &ThisClass::OnGameplayTagUpdate);
+	Cast<ATPSPlayerState>(GetPlayerState())->OnDeath.AddUObject(this, &AProjectWTpsCharacter::OnDeath);
 }
 
 void AProjectWTpsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	// Set up action bindings
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent)) {
-		
+	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
 		// Jumping
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
 		EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
@@ -88,11 +84,44 @@ void AProjectWTpsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	}
 }
 
+void AProjectWTpsCharacter::OnGameplayTagUpdate(const FGameplayTag Tag, const int Count)
+{
+	if (Tag.MatchesTag(PWTags::ASC::State::Casting::Root))
+	{
+		if (Count > 0) GetCharacterMovement()->bOrientRotationToMovement = false;
+		else GetCharacterMovement()->bOrientRotationToMovement = true;
+
+		if (Tag.MatchesTag(PWTags::ASC::State::Casting::Channeling))
+		{
+			bChanneling = Count > 0;
+		}
+	}
+
+	BP_OnGameplayTagUpdate(Tag, Count);
+}
+
+void AProjectWTpsCharacter::OnDeath() const
+{
+	// disable movement while we're dead
+	GetCharacterMovement()->DisableMovement();
+
+	// enable full ragdoll physics
+	GetMesh()->SetSimulatePhysics(true);
+
+	// pull back the camera
+	//GetCameraBoom()->TargetArmLength = DeathCameraDistance;
+
+	// schedule respawning
+	//GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ACombatCharacter::RespawnCharacter, RespawnTime, false);
+}
+
 void AProjectWTpsCharacter::Move(const FInputActionValue& Value)
 {
+	if (bChanneling) return; // todo: cancel channeling.
+	
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
-	
+
 	GetCharacterMovement()->bOrientRotationToMovement = false;
 
 	// route the input
@@ -101,8 +130,8 @@ void AProjectWTpsCharacter::Move(const FInputActionValue& Value)
 
 void AProjectWTpsCharacter::StopMove(const FInputActionValue& Value)
 {
-	if (GetAbilitySystemComponent()->HasMatchingGameplayTag(PWTags::ASC::State::Casting)) return;
-	
+	if (GetAbilitySystemComponent()->HasMatchingGameplayTag(PWTags::ASC::State::Casting::Root)) return;
+
 	GetCharacterMovement()->bOrientRotationToMovement = true;
 }
 

@@ -1,0 +1,60 @@
+﻿#pragma once
+#include "NativeGameplayTags.h"
+
+
+namespace PWTags::ASC::State
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+}
+
+namespace PWTags::ASC::State::Casting
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Channeling);
+}
+
+
+
+namespace PWTags::Attribute
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+}
+
+namespace PWTags::Attribute::Vital
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Health);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HealthMax);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(HealthRegen);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Shield);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ShieldMax);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ShieldRegen);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Mana);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ManaMax);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(ManaRegen);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Stamina);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(StaminaMax);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(StaminaRegen);
+}
+
+namespace PWTags::Attribute::Offense
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AttackPower);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CriticalChance);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CriticalPower);
+}
+
+namespace PWTags::Attribute::Defense
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AttackResistance);
+}
+
+namespace PWTags::Attribute::Utility
+{
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(MovementSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(AttackSpeed);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(CooldownReduction);
+}

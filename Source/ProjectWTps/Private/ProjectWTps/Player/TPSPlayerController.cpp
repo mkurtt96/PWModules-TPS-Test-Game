@@ -1,12 +1,12 @@
 ﻿// copyright mkurtt96
 
 
-#include "Player/TPSPlayerController.h"
+#include "ProjectWTPS/Player/TPSPlayerController.h"
 
 #include "AbilitySystemBlueprintLibrary.h"
 #include "PWInputRouter.h"
 #include "GAS/ASC/PWAbilitySystemComponent.h"
-#include "Player/TPSPlayerState.h"
+#include "ProjectWTPS/Player/TPSPlayerState.h"
 
 ATPSPlayerController::ATPSPlayerController()
 {
