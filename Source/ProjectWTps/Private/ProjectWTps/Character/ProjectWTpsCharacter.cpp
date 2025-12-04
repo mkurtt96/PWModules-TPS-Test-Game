@@ -15,6 +15,9 @@
 #include "ProjectWTps.h"
 #include "ProjectWTPS/Tags/ProjectWTpsTags.h"
 #include "GAS/ASC/PWAbilitySystemComponent.h"
+#include "Macros/LogMacros.h"
+#include "ProjectWTPS/AbilitySystem/AttributeSet_Core.h"
+#include "ProjectWTps/AbilitySystem/Library/AttributeLibrary.h"
 #include "ProjectWTPS/Player/TPSPlayerState.h"
 
 AProjectWTpsCharacter::AProjectWTpsCharacter()
@@ -55,12 +58,46 @@ AProjectWTpsCharacter::AProjectWTpsCharacter()
 	// are set in the derived blueprint asset named ThirdPersonCharacter (to avoid direct content references in C++)
 }
 
+UObject* AProjectWTpsCharacter::GetEffectReceiver_Implementation()
+{
+	return GetPlayerState();
+}
+
 void AProjectWTpsCharacter::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
-	GetAbilitySystemComponent()->RegisterGenericGameplayTagEvent().AddUObject(this, &ThisClass::OnGameplayTagUpdate);
-	Cast<ATPSPlayerState>(GetPlayerState())->OnDeath.AddUObject(this, &AProjectWTpsCharacter::OnDeath);
+void AProjectWTpsCharacter::OnRep_PlayerState()
+{
+	Super::OnRep_PlayerState();
+
+	SetupComponents();
+}
+
+void AProjectWTpsCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	SetupComponents();
+}
+
+void AProjectWTpsCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	const bool bIsMovingNow = GetVelocity().SizeSquared() > KINDA_SMALL_NUMBER;
+	if (bIsMovingNow != bWasMovingLastFrame)
+	{
+		if (UAbilitySystemComponent* ASC = GetAbilitySystemComponent())
+		{
+			if (bIsMovingNow)
+				ASC->AddLooseGameplayTag(PWTags::ASC::State::Moving);
+			else
+				ASC->RemoveLooseGameplayTag(PWTags::ASC::State::Moving);
+		}
+		bWasMovingLastFrame = bIsMovingNow;
+	}
 }
 
 void AProjectWTpsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -84,41 +121,35 @@ void AProjectWTpsCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInp
 	}
 }
 
+void AProjectWTpsCharacter::OnAttributeChanged_MovementSpeed(const FOnAttributeChangeData& Data)
+{
+	GetCharacterMovement()->MaxWalkSpeed = Data.NewValue;
+}
+
+void AProjectWTpsCharacter::SetupComponents()
+{
+	GetAbilitySystemComponent()->InitAbilityActorInfo(GetPlayerState(), this);
+
+	UAbilitySystemComponent* ASC = GetAbilitySystemComponent();
+	ASC->RegisterGenericGameplayTagEvent().AddUObject(this, &ThisClass::OnGameplayTagUpdate);
+	ASC->GetGameplayAttributeValueChangeDelegate(UAttributeSet_Core::GetMovementSpeedAttribute()).AddUObject(this, &ThisClass::OnAttributeChanged_MovementSpeed);
+
+	OnSetupComponents();
+}
+
 void AProjectWTpsCharacter::OnGameplayTagUpdate(const FGameplayTag Tag, const int Count)
 {
 	if (Tag.MatchesTag(PWTags::ASC::State::Casting::Root))
 	{
 		if (Count > 0) GetCharacterMovement()->bOrientRotationToMovement = false;
 		else GetCharacterMovement()->bOrientRotationToMovement = true;
-
-		if (Tag.MatchesTag(PWTags::ASC::State::Casting::Channeling))
-		{
-			bChanneling = Count > 0;
-		}
 	}
 
 	BP_OnGameplayTagUpdate(Tag, Count);
 }
 
-void AProjectWTpsCharacter::OnDeath() const
-{
-	// disable movement while we're dead
-	GetCharacterMovement()->DisableMovement();
-
-	// enable full ragdoll physics
-	GetMesh()->SetSimulatePhysics(true);
-
-	// pull back the camera
-	//GetCameraBoom()->TargetArmLength = DeathCameraDistance;
-
-	// schedule respawning
-	//GetWorld()->GetTimerManager().SetTimer(RespawnTimer, this, &ACombatCharacter::RespawnCharacter, RespawnTime, false);
-}
-
 void AProjectWTpsCharacter::Move(const FInputActionValue& Value)
 {
-	if (bChanneling) return; // todo: cancel channeling.
-	
 	// input is a Vector2D
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -189,4 +220,9 @@ void AProjectWTpsCharacter::DoJumpEnd()
 UAbilitySystemComponent* AProjectWTpsCharacter::GetAbilitySystemComponent() const
 {
 	return Cast<UPWAbilitySystemComponent>(UAbilitySystemBlueprintLibrary::GetAbilitySystemComponent(GetPlayerState<ATPSPlayerState>()));
+}
+
+UPWAbilitySystemComponent* AProjectWTpsCharacter::GetASC() const
+{
+	return Cast<UPWAbilitySystemComponent>(GetAbilitySystemComponent());
 }

@@ -7,6 +7,7 @@
 #include "PWInputRouter.h"
 #include "GAS/ASC/PWAbilitySystemComponent.h"
 #include "ProjectWTPS/Player/TPSPlayerState.h"
+#include "ProjectWTPS/Settings/GameSettings.h"
 
 ATPSPlayerController::ATPSPlayerController()
 {
@@ -16,8 +17,6 @@ ATPSPlayerController::ATPSPlayerController()
 void ATPSPlayerController::BeginPlay()
 {
 	Super::BeginPlay();
-
-	InputRouter->SetMappingContext(GetLocalPlayer());
 	
 	bShowMouseCursor = false;
 }
@@ -26,6 +25,8 @@ void ATPSPlayerController::SetupInputComponent()
 {
 	Super::SetupInputComponent();
 	
+	InputRouter->InputConfig = UGameSettings::Get()->GetInputConfig();
+	InputRouter->SetMappingContext(GetLocalPlayer());
 	InputRouter->BindAll(InputComponent);
 	InputRouter->OnStarted.AddDynamic(this, &ThisClass::InputTagStarted);
 	InputRouter->OnCompleted.AddDynamic(this, &ThisClass::InputTagCompleted);

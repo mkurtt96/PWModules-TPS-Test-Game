@@ -4,7 +4,9 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
+#include "GameplayEffectTypes.h"
 #include "GameplayTagContainer.h"
+#include "Ability/EffectReceiver.h"
 #include "GameFramework/Character.h"
 #include "Logging/LogMacros.h"
 #include "ProjectWTpsCharacter.generated.h"
@@ -18,7 +20,7 @@ struct FInputActionValue;
 DECLARE_LOG_CATEGORY_EXTERN(LogTemplateCharacter, Log, All);
 
 UCLASS(abstract)
-class AProjectWTpsCharacter : public ACharacter, public IAbilitySystemInterface
+class AProjectWTpsCharacter : public ACharacter, public IAbilitySystemInterface, public IEffectReceiver
 {
 	GENERATED_BODY()
 
@@ -28,32 +30,41 @@ class AProjectWTpsCharacter : public ACharacter, public IAbilitySystemInterface
 	UCameraComponent* FollowCamera;
 	
 protected:
-
 	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* JumpAction;
+	TObjectPtr<UInputAction> JumpAction;
 	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* MoveAction;
+	TObjectPtr<UInputAction> MoveAction;
 	UPROPERTY(EditAnywhere, Category="Input")
-	UInputAction* MouseLookAction;
+	TObjectPtr<UInputAction> MouseLookAction;
 
 public:
-	AProjectWTpsCharacter();	
-
+	AProjectWTpsCharacter();
+	
+	//~IPWEffectReceiver
+	virtual UObject* GetEffectReceiver_Implementation() override;
 protected:
+	//~UE classes
 	virtual void BeginPlay() override;
+	virtual void OnRep_PlayerState() override;
+	virtual void PossessedBy(AController* NewController) override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+
+	void OnAttributeChanged_MovementSpeed(const FOnAttributeChangeData& OnAttributeChangeData);
+	virtual void SetupComponents();
+	UFUNCTION(BlueprintImplementableEvent)
+	void OnSetupComponents();
 
 protected:
 	void OnGameplayTagUpdate(FGameplayTag Tag, int Count);
 	UFUNCTION(BlueprintImplementableEvent, Category="Input", meta=(DisplayName="OnGameplayTagUpdate"))
 	void BP_OnGameplayTagUpdate(FGameplayTag Tag, int Count);
-	void OnDeath() const;
 	
 	void Move(const FInputActionValue& Value);
 	void StopMove(const FInputActionValue& Value);
 	void Look(const FInputActionValue& Value);
 
-	bool bChanneling = false;
+	bool bWasMovingLastFrame = false;
 
 public:
 	UFUNCTION(BlueprintCallable, Category="Input")
@@ -70,5 +81,6 @@ public:
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
 	UFUNCTION(BlueprintCallable)
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;
+	UPWAbilitySystemComponent* GetASC() const;
 };
 

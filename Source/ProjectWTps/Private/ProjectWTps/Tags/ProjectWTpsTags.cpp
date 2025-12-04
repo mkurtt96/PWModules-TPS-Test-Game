@@ -4,6 +4,7 @@
 namespace PWTags::ASC::State
 {
 	UE_DEFINE_GAMEPLAY_TAG(Root, "ASC.State");
+	UE_DEFINE_GAMEPLAY_TAG(Moving, "ASC.State.Moving");
 }
 
 namespace PWTags::ASC::State::Casting

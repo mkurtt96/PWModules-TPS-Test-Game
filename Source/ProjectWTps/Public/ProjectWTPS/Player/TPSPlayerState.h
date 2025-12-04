@@ -4,39 +4,40 @@
 
 #include "CoreMinimal.h"
 #include "AbilitySystemInterface.h"
-#include "Ability/Damageable.h"
-#include "Ability/Effectable.h"
+#include "Ability/Affectable.h"
+#include "Ability/EffectReceiver.h"
 #include "GameFramework/PlayerState.h"
 #include "TPSPlayerState.generated.h"
 
+class UAttributeSet_Vitals;
 class ATPSPlayerState;
 struct FEffectProperties;
 class UAttributeSet_Core;
 class UPWAbilitySystemComponent;
 
-DECLARE_MULTICAST_DELEGATE(FOnDeathDelegate);
 
 UCLASS()
-class PROJECTWTPS_API ATPSPlayerState : public APlayerState, public IAbilitySystemInterface, public IDamageable, public IEffectable
+class PROJECTWTPS_API ATPSPlayerState : public APlayerState, public IAbilitySystemInterface, public IAffectable, public IEffectReceiver
 {
 	GENERATED_BODY()
 
 public:
-	FOnDeathDelegate OnDeath;
 	ATPSPlayerState();
-	virtual bool ApplyDamage_Implementation(class USpellParams* Params) override;
-	virtual bool ApplyEffects_Implementation(class USpellParams* Params) override;
-
-	bool bIsAlive;
-	void SetIsAlive(bool bAlive);
+	//~IEffectable
+	virtual bool ApplyEffects_Implementation(class USpellParams* SpellParams) override;
+	//~IPWEffectReceiver
+	virtual UObject* GetEffectReceiver_Implementation() override;	
 	
 protected:
 	virtual void BeginPlay() override;
+	virtual void PostInitializeComponents() override;
 	
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
 	TObjectPtr<UPWAbilitySystemComponent> ASC;
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
-	TObjectPtr<UAttributeSet_Core> AS;
+	TObjectPtr<UAttributeSet_Core> ASCore;
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly)
+	TObjectPtr<UAttributeSet_Vitals> ASVitals;
 
 public:
 	virtual UAbilitySystemComponent* GetAbilitySystemComponent() const override;

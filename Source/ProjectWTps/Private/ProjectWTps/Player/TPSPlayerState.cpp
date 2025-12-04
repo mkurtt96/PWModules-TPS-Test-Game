@@ -5,6 +5,9 @@
 
 #include "ProjectWTPS/AbilitySystem/AttributeSet_Core.h"
 #include "GAS/ASC/PWAbilitySystemComponent.h"
+#include "Libraries/GASCoreFunctions.h"
+#include "ProjectWTPS/AbilitySystem/AttributeSet_Vitals.h"
+#include "ProjectWTPS/Settings/GameSettings.h"
 
 ATPSPlayerState::ATPSPlayerState()
 {
@@ -12,32 +15,47 @@ ATPSPlayerState::ATPSPlayerState()
 	ASC->SetIsReplicated(true);
 	ASC->SetReplicationMode(EGameplayEffectReplicationMode::Mixed);
 
-	AS = CreateDefaultSubobject<UAttributeSet_Core>("AttributeSet Core");
+	ASCore = CreateDefaultSubobject<UAttributeSet_Core>("AttributeSet Core");
+	ASVitals = CreateDefaultSubobject<UAttributeSet_Vitals>("AttributeSet Vitals");
 
-	SetNetUpdateFrequency(60);
+	SetNetUpdateFrequency(100);
 }
 
-bool ATPSPlayerState::ApplyDamage_Implementation(class USpellParams* Params)
+bool ATPSPlayerState::ApplyEffects_Implementation(class USpellParams* SpellParams)
 {
-	return IDamageable::ApplyDamage_Implementation(Params);
+	return UGASCoreFunctions::ApplyEffects(GetASC(), SpellParams);
 }
 
-bool ATPSPlayerState::ApplyEffects_Implementation(class USpellParams* Params)
+UObject* ATPSPlayerState::GetEffectReceiver_Implementation()
 {
-	return IEffectable::ApplyEffects_Implementation(Params);
-}
-
-void ATPSPlayerState::SetIsAlive(bool bAlive)
-{
-	bIsAlive = bAlive;
-	if (!bIsAlive) OnDeath.Broadcast();
+	return this;
 }
 
 void ATPSPlayerState::BeginPlay()
 {
 	Super::BeginPlay();
+}
 
+void ATPSPlayerState::PostInitializeComponents()
+{
+	Super::PostInitializeComponents();
+	
 	ASC->InitAbilityActorInfo(this, GetPawn());
+
+	if (HasAuthority())
+	{
+		const UGameSettings* GameSettings = UGameSettings::Get();
+		GetASC()->Abilities().AddAbilities(GameSettings->GetDefaultAbilities());
+		for (FInputToAbility InputToAbility : GameSettings->GetDefaultInputToAbilities())
+			GetASC()->Abilities().AddAbility(InputToAbility.AbilityTag, InputToAbility.InputTag);
+		for (TSubclassOf<UGameplayEffect> GE : GameSettings->GetDefaultEffects())
+		{
+			FGameplayEffectContextHandle ContextHandle = ASC->MakeEffectContext();
+			ContextHandle.AddSourceObject(this);
+			const FGameplayEffectSpecHandle SpecHandle = GetASC()->MakeOutgoingSpec(GE, 1, ContextHandle);
+			ASC->ApplyGameplayEffectSpecToSelf(*SpecHandle.Data.Get());
+		}
+	}
 }
 
 UAbilitySystemComponent* ATPSPlayerState::GetAbilitySystemComponent() const
@@ -52,5 +70,5 @@ UPWAbilitySystemComponent* ATPSPlayerState::GetASC() const
 
 UAttributeSet_Core* ATPSPlayerState::GetASCore() const
 {
-	return AS;
+	return ASCore;
 }

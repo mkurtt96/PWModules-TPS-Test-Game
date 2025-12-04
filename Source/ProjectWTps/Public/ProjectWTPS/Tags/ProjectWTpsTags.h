@@ -5,6 +5,7 @@
 namespace PWTags::ASC::State
 {
 	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Root);
+	UE_DECLARE_GAMEPLAY_TAG_EXTERN(Moving);
 }
 
 namespace PWTags::ASC::State::Casting

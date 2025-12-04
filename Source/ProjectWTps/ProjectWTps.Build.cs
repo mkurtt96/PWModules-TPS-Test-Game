@@ -23,14 +23,17 @@ public class ProjectWTps : ModuleRules
 			"PWGasCore", 
 			"PWAttributes", 
 			"GameplayAbilities",
-			"GameplayTags"
+			"GameplayTags",
+			"PWInput",
+			"DeveloperSettings"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"PWInput",
 			"PWGasCore", 
-			
+			"PWLogging",
+			"DeveloperSettings"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {
